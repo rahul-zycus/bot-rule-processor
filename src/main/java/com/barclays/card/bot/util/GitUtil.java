@@ -19,6 +19,8 @@ import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.util.FS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import com.barclays.card.bot.exception.GitException;
 import com.jcraft.jsch.JSch;
@@ -29,19 +31,24 @@ import com.jcraft.jsch.Session;
  * @author Rahul
  *
  */
+@Component
 public class GitUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GitUtil.class);
 
-	private static String sshKeyFile = "D:\\code\\key\\privkey";
-	private static String passPhrase = "test";
-	private static String tempFileLocation = "D:\\temp";
+	@Value("${git.ssh.file}")
+	private String sshKeyFile;
+	@Value("${git.ssh.passPhrase}")
+	private String passPhrase;
+	@Value("${git.temp.location}")
+	private String tempFileLocation;
 
 	public static void main(String[] args) throws GitAPIException {
 		// isValidRepo("git@github.com:rahul-zycus/spring5webapp.git");
-		cloneRepo("git@github.com:rahul-zycus/bot-rule-processor.git", "refs/heads/master");
+		GitUtil git = new GitUtil();
+		git.cloneRepo("git@github.com:rahul-zycus/bot-rule-processor.git", "refs/heads/master");
 	}
 
-	public static boolean isValidRepo(String gitRepo) {
+	public boolean isValidRepo(String gitRepo) {
 		LsRemoteCommand lsCmd = new LsRemoteCommand(null);
 		lsCmd.setRemote(gitRepo);
 		lsCmd = setSShKey(lsCmd);
@@ -57,7 +64,7 @@ public class GitUtil {
 		return true;
 	}
 
-	public static <T extends TransportCommand> T setSShKey(T gitCommand) {
+	public <T extends TransportCommand> T setSShKey(T gitCommand) {
 		gitCommand.setTransportConfigCallback((transport) -> {
 			SshTransport sshTransport = (SshTransport) transport;
 			sshTransport.setSshSessionFactory(getDefaultJschFactory());
@@ -68,7 +75,7 @@ public class GitUtil {
 	/*
 	 * TODO To load file name and passphrase from the property file.
 	 */
-	private static SshSessionFactory getDefaultJschFactory() {
+	private SshSessionFactory getDefaultJschFactory() {
 		return new JschConfigSessionFactory() {
 			@Override
 			protected void configure(Host hc, Session session) {
@@ -83,7 +90,7 @@ public class GitUtil {
 		};
 	}
 
-	public static void cloneRepo(String gitRepo, String gitBranch) throws GitAPIException {
+	public void cloneRepo(String gitRepo, String gitBranch) throws GitAPIException {
 		if (isValidRepo(gitRepo)) {
 			try {
 				File file = new File(tempFileLocation);
