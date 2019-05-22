@@ -3,6 +3,8 @@
  */
 package com.barclays.card.bot.service;
 
+import java.util.List;
+
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.stereotype.Service;
 
@@ -27,5 +29,9 @@ public class GitService {
 	}
 	public void clone(String gitRepo,String brnach) throws GitAPIException {
 		gitUtil.cloneRepo(gitRepo, brnach);
+	}
+	
+	public List<String> getAllBranch(String gitRepo){
+		return gitUtil.fetchGitBranches(gitRepo);
 	}
 }

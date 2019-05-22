@@ -4,7 +4,11 @@
 package com.barclays.card.bot.util;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -12,6 +16,7 @@ import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig.Host;
 import org.eclipse.jgit.transport.SshSessionFactory;
@@ -46,6 +51,24 @@ public class GitUtil {
 		// isValidRepo("git@github.com:rahul-zycus/spring5webapp.git");
 		GitUtil git = new GitUtil();
 		git.cloneRepo("git@github.com:rahul-zycus/bot-rule-processor.git", "refs/heads/master");
+	}
+
+	public List<String> fetchGitBranches(String gitUrl) {
+		Collection<Ref> refs;
+		List<String> branches = new ArrayList<String>();
+		try {
+			LsRemoteCommand cmd = Git.lsRemoteRepository().setHeads(true).setRemote(gitUrl);
+			// .call();
+			cmd = setSShKey(cmd);
+			refs = cmd.call();
+			for (Ref ref : refs) {
+				branches.add(ref.getName().substring(ref.getName().lastIndexOf("/") + 1, ref.getName().length()));
+			}
+			Collections.sort(branches);
+		} catch (GitAPIException e) {
+			LOGGER.error(" FETCH_BRANCH_ERROR", e);
+		}
+		return branches;
 	}
 
 	public boolean isValidRepo(String gitRepo) {
